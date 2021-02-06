@@ -3,6 +3,41 @@ dagster-mlflow-exemple
 
 A short test for mlflow integration to dagster
 
+I follow this [simple tutorial](https://jonathonbechtel.com/blog/2018/02/06/wines/ ) from [Jonathon Bechtel](http://github.com/jbechtel) 
+which test multiple models in a loop. I wanted to implement it with dagster and maybe at the end to play it together with mlflow.
+
+![First Pipeline](./docs/First%20pipeline%20dagster.png)
+
+Configuration of solids:
+
+```yaml
+solids:
+  decision_tree:
+    config: "Decision Tree"
+  gradient_boosting_classifier:
+    config: "Gradient Boosting Classifier"
+  linear_svm:
+    config: "Linear SVM"
+  logistic_regression:
+    config: "Logistic Regression"
+  naive_bayes:
+    config: "Naive Bayes"
+  nearest_neighbors:
+    config: "Nearest Neighbors"
+  random_forest:
+    config: "Random Forest"
+```
+
+Todo list:
+
+- [ ] Add mlflow to log models
+- [ ] See if it is possible to integrate solid configuration dynamically, e.g. another solid can get the list of parameters from a file then pass it to dynamically launch multiple solids (models)
+- [ ] Launch solids in parallel
+- [ ] Trigger dagster when a new parameter is registered.
+- [ ] Construct solid dynamically from an mlflow[ model signature](https://www.mlflow.org/docs/latest/_modules/mlflow/models/signature.html). Ex? [With papermill](https://www.youtube.com/watch?v=9WKtBFg2bUo).
+- [ ] Test [sensors event based triggering](https://docs.dagster.io/overview/schedules-sensors/sensors)
+
+
 Project Organization
 ------------
 
