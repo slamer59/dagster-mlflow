@@ -128,9 +128,9 @@ dict_classifiers = {
 }
 
 # https://docs.dagster.io/tutorial/advanced_solids
-@solid(config_schema={"classifier_name": str})
+@solid(config_schema=String) #{"classifier_name": str})
 def ml_model(context, X_train, Y_train, X_test, Y_test):
-    key = context.solid_config["classifier_name"]  # 'Logistic Regression'
+    key = context.solid_config #["classifier_name"]  # 'Logistic Regression'
     # key = 'Logistic Regression'
     context.log.info("ML Model: {}".format(key))
     context.log.info(
@@ -185,9 +185,9 @@ def classify_wines():
     build_features(load_wines)
     tr_test_split = train_test_split(load_wines)
 
-    ml_model(*tr_test_split)
-
-    # log_reg = ml_model.alias("Random Forest")
-    # nearest_neighbors = ml_model.alias('nearest_neighbors')
-    # log_reg(*tr_test_split)
-    # nearest_neighbors(*tr_test_split)
+    # ml_model(*tr_test_split)
+    for k in dict_classifiers.keys():
+        model_name = k.replace(' ', '_').lower()
+        model = ml_model.alias(model_name)
+        model(*tr_test_split)
+    
