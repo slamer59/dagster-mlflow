@@ -13,15 +13,20 @@ from dagster import (
     execute_pipeline,
     pipeline,
     solid,
+    String,
+    Selector,
+    Enum,
+    EnumValue,
+    Field,
+    Any
 )
 import typing
+
 # https://github.com/dagster-io/dagster/blob/4a91c9d09b50db93e9174c93a4ada0e138e3a046/examples/docs_snippets/docs_snippets/intro_tutorial/basics/e02_solids/multiple_outputs.py
 if typing.TYPE_CHECKING:
     DataFrame = list
 else:
     DataFrame = PythonObjectDagsterType(list, name="DataFrame")  # type: Any
-
-
 
 
 # https://jonathonbechtel.com/blog/2018/02/06/wines/
@@ -81,71 +86,50 @@ from sklearn.gaussian_process.kernels import RBF
 from sklearn.ensemble import RandomForestClassifier
 
 
-from sklearn.model_selection import GridSearchCV 
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 
 dict_classifiers = {
-    "Logistic Regression": 
-            {'classifier': LogisticRegression(),
-                'params' : [
-                            {
-                             'penalty': ['l1','l2'],
-                             'C': [0.001,0.01,0.1,1,10,100,1000]
-                            }
-                           ]
-            },
-    "Nearest Neighbors": 
-            {'classifier': KNeighborsClassifier(),
-                 'params': [
-                            {
-                            'n_neighbors': [1, 3, 5, 10],
-                            'leaf_size': [3, 30]
-                            }
-                           ]
-            },
-             
-    "Linear SVM": 
-            {'classifier': SVC(),
-                 'params': [
-                            {
-                             'C': [1, 10, 100, 1000],
-                             'gamma': [0.001, 0.0001],
-                             'kernel': ['linear']
-                            }
-                           ]
-            },
-    "Gradient Boosting Classifier": 
-            {'classifier': GradientBoostingClassifier(),
-                 'params': [
-                            {
-                             'learning_rate': [0.05, 0.1],
-                             'n_estimators' :[50, 100, 200],
-                             'max_depth':[3,None]
-                            }
-                           ]
-            },
-    "Decision Tree":
-            {'classifier': tree.DecisionTreeClassifier(),
-                 'params': [
-                            {
-                             'max_depth':[3,None]
-                            }
-                             ]
-            },
-    "Random Forest": 
-            {'classifier': RandomForestClassifier(),
-                 'params': {}
-            },
-    "Naive Bayes": 
-            {'classifier': GaussianNB(),
-                 'params': {}
+    "Logistic Regression": {
+        "classifier": LogisticRegression(),
+        "params": [
+            {"penalty": ["l1", "l2"], "C": [0.001, 0.01, 0.1, 1, 10, 100, 1000]}
+        ],
+    },
+    "Nearest Neighbors": {
+        "classifier": KNeighborsClassifier(),
+        "params": [{"n_neighbors": [1, 3, 5, 10], "leaf_size": [3, 30]}],
+    },
+    "Linear SVM": {
+        "classifier": SVC(),
+        "params": [
+            {"C": [1, 10, 100, 1000], "gamma": [0.001, 0.0001], "kernel": ["linear"]}
+        ],
+    },
+    "Gradient Boosting Classifier": {
+        "classifier": GradientBoostingClassifier(),
+        "params": [
+            {
+                "learning_rate": [0.05, 0.1],
+                "n_estimators": [50, 100, 200],
+                "max_depth": [3, None],
             }
+        ],
+    },
+    "Decision Tree": {
+        "classifier": tree.DecisionTreeClassifier(),
+        "params": [{"max_depth": [3, None]}],
+    },
+    "Random Forest": {"classifier": RandomForestClassifier(), "params": {}},
+    "Naive Bayes": {"classifier": GaussianNB(), "params": {}},
 }
 
-
-@solid
-def ml_model(context, X_train, X_test,Y_train,  Y_test):
-    key = 'Logistic Regression'
+# https://docs.dagster.io/tutorial/advanced_solids
+@solid(config_schema=Field(Any))
+def ml_model(context, X_train, Y_train, X_test, Y_test):
+    key = context.solid_config  # 'Logistic Regression'
+    # key = 'Logistic Regression'
+    context.log.info("ML Model: {}".format(key))
     t_start = time.process_time()
 
     count = 0
@@ -163,7 +147,7 @@ def ml_model(context, X_train, X_test,Y_train,  Y_test):
         n_jobs=-1,
     )
     estimator = grid.fit(X_train, Y_train)
-    t_end = time.clock()
+    t_end = time.process_time()
     t_diff = t_end - t_start
     train_score = estimator.score(X_train, Y_train)
     test_score = estimator.score(X_test, Y_test)
@@ -185,5 +169,13 @@ def ml_model(context, X_train, X_test,Y_train,  Y_test):
 
 @pipeline
 def classify_wines():
-    build_features(load_wines_dataset())
-    ml_model(*train_test_split(load_wines_dataset()))
+    load_wines = load_wines_dataset()
+    build_features(load_wines)
+    tr_test_split = train_test_split(load_wines)
+
+    ml_model(*tr_test_split)
+
+    # log_reg = ml_model.alias("Random Forest")
+    # nearest_neighbors = ml_model.alias('nearest_neighbors')
+    # log_reg(*tr_test_split)
+    # nearest_neighbors(*tr_test_split)
