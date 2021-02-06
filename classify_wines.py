@@ -18,7 +18,7 @@ from dagster import (
     Enum,
     EnumValue,
     Field,
-    Any
+    Any,
 )
 import typing
 
@@ -59,14 +59,17 @@ def build_features(context, wines):
 def train_test_split(context, data):
     from sklearn.model_selection import train_test_split
 
-    X_train, Y_train, X_test, Y_test = train_test_split(
+    X_train, X_test, Y_train, Y_test = train_test_split(
         data["data"], data["target"], test_size=0.2
     )
     context.log.info(
         """Samples in:
-         - training data: {l_data_train}
-         - test data: {l_data_test}""".format(
-            l_data_train=len(X_train), l_data_test=len(X_test)
+         - training data X: {l_data_train_x}
+         - test data X: {l_data_test_x}
+         - training data Y: {l_data_train_y}
+         - test data Y: {l_data_test_y}
+         """.format(
+            l_data_train_x=len(X_train), l_data_test_x=len(X_test),l_data_train_y=len(Y_train), l_data_test_y=len(Y_test)
         )
     )
     yield Output(X_train, "X_train")
@@ -125,11 +128,20 @@ dict_classifiers = {
 }
 
 # https://docs.dagster.io/tutorial/advanced_solids
-@solid(config_schema=Field(Any))
+@solid(config_schema={"classifier_name": str})
 def ml_model(context, X_train, Y_train, X_test, Y_test):
-    key = context.solid_config  # 'Logistic Regression'
+    key = context.solid_config["classifier_name"]  # 'Logistic Regression'
     # key = 'Logistic Regression'
     context.log.info("ML Model: {}".format(key))
+    context.log.info(
+    """Samples in:
+        - training data X: {l_data_train_x}
+        - test data X: {l_data_test_x}
+        - training data Y: {l_data_train_y}
+        - test data Y: {l_data_test_y}
+        """.format(
+        l_data_train_x=len(X_train), l_data_test_x=len(X_test),l_data_train_y=len(Y_train), l_data_test_y=len(Y_test)
+    ))
     t_start = time.process_time()
 
     count = 0
