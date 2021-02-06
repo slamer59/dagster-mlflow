@@ -178,6 +178,13 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
     #                         cv=10)
     return df_results
 
+@solid
+def merge_results(context, models_metrics_result):
+    return pd.concat(models_metrics_result)
+
+
+# To try: 
+# https://stackoverflow.com/questions/61330816/how-would-you-parameterize-dagster-pipelines-to-run-same-solids-with-multiple-di
 
 @pipeline
 def classify_wines():
@@ -186,8 +193,11 @@ def classify_wines():
     tr_test_split = train_test_split(load_wines)
 
     # ml_model(*tr_test_split)
+    models_metrics_result = []
     for k in dict_classifiers.keys():
         model_name = k.replace(' ', '_').lower()
         model = ml_model.alias(model_name)
-        model(*tr_test_split)
-    
+        output_m = model(*tr_test_split)
+        models_metrics_result.append(output_m)
+
+    merge_results(models_metrics_result)
