@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  redisai:
+    image: redisai/redisai
+# https://dev.to/goodidea/how-to-fake-aws-locally-with-localstack-27me
+  artifact-store:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./storage/minio:/data
+    environment:
+      MINIO_ACCESS_KEY: mlflow_user
+      MINIO_SECRET_KEY: mlflow_pwd
+    entrypoint: bash
+    command: -c 'mkdir -p /data/mlflow-bucket && /usr/bin/minio server --address 0.0.0.0:9000 /data'
+    # deploy:
+    #   restart_policy:
+    #     condition: on-failure
+
+  mlflow:
+    build: mlflow
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgresql
+    volumes:
+      - ../models/mlflow:/mlflow/mlflow-artifacts
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: "http://0.0.0.0:9000"
+      POSTGRES_USER: mlflow_user
+      POSTGRES_PASSWORD: mlflow_pwd
+      POSTGRES_DB: mlflow-db
+      # AWS_ACCESS_KEY: "mlflow_user"
+      # AWS_SECRET_KEY: "mlflow_pwd"
+      AWS_HOST: "http://0.0.0.0:9000"
+      AWS_DISABLE_SSL: "true"
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      AWS_BUCKET: "mlflow-bucket"
+      AWS_ACCESS_KEY_ID: mlflow_user
+      AWS_SECRET_ACCESS_KEY: mlflow_pwd
+      # ARTIFACTS_URI: , artifact_location=sftp_uri
+      BACKEND_URI: postgresql+psycopg2://mlflow_user:mlflow_pwd@postgresql:5432/mlflow-db
+      VIRTUAL_HOST: ${HOST}
+      VIRTUAL_PORT: ${MLFLOW_PORT}
+      
+  postgresql:
+    image: postgres:10.5
+    container_name: postgresql
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: mlflow_user
+      POSTGRES_PASSWORD: mlflow_pwd
+      POSTGRES_DB: mlflow-db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    hostname: postgresql
+    restart: always
+
+volumes:
+    dbdata:  
+
+networks:
+  default:
+    name: mock_demo

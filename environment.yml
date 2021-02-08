@@ -163,4 +163,7 @@ dependencies:
   - zope
   - zope.event
   - zope.interface
-  
+  - onnx==1.6.0
+  - onnxruntime==1.1.0
+  - onnxmltools==1.6.0
+  - skl2onnx==1.6.0

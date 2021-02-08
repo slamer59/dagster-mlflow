@@ -1,0 +1,11 @@
+name: mlflow
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - sqlalchemy
+  - sqlite
+  - mlflow
+  - psycopg2
+  - pysftp
+  - boto3
