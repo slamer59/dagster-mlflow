@@ -20,7 +20,8 @@ ENV PATH /opt/conda/envs/mlflow/bin:$PATH
 
 EXPOSE ${PORT_LISTEN}
 
-CMD echo "Artifact Root is ${ARTIFACT_ROOT}" && \
+CMD echo "BACKEND_URI: ${BACKEND_URI}" && \
+    echo "ARTIFACT_ROOT: ${ARTIFACT_ROOT}" && \
   mlflow server \
   --backend-store-uri ${BACKEND_URI} \
   --default-artifact-root ${ARTIFACT_ROOT} \

@@ -1,0 +1,2 @@
+solids:
+  ml_model: {"config": {"classifier_name": "Decision Tree"}}

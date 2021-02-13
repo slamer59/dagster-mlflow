@@ -1,8 +1,11 @@
-version: "3"
+version: "3.7"
 
 services:
   redisai:
     image: redisai/redisai
+    networks:
+      - mlflow
+
 # https://dev.to/goodidea/how-to-fake-aws-locally-with-localstack-27me
   artifact-store:
     image: minio/minio
@@ -15,6 +18,9 @@ services:
       MINIO_SECRET_KEY: mlflow_pwd
     entrypoint: bash
     command: -c 'mkdir -p /data/mlflow-bucket && /usr/bin/minio server --address 0.0.0.0:9000 /data'
+    networks:
+      - mlflow
+
     # deploy:
     #   restart_policy:
     #     condition: on-failure
@@ -28,28 +34,28 @@ services:
     volumes:
       - ../models/mlflow:/mlflow/mlflow-artifacts
     environment:
-      MLFLOW_S3_ENDPOINT_URL: "http://0.0.0.0:9000"
+      MLFLOW_S3_ENDPOINT_URL: "http://127.0.0.1:9000"
+      ARTIFACT_ROOT: "s3://mlflow-bucket/"
       POSTGRES_USER: mlflow_user
       POSTGRES_PASSWORD: mlflow_pwd
       POSTGRES_DB: mlflow-db
-      # AWS_ACCESS_KEY: "mlflow_user"
-      # AWS_SECRET_KEY: "mlflow_pwd"
-      AWS_HOST: "http://0.0.0.0:9000"
+      AWS_HOST: "http://127.0.0.1:9000"
       AWS_DISABLE_SSL: "true"
       AWS_S3_FORCE_PATH_STYLE: "true"
       AWS_BUCKET: "mlflow-bucket"
-      AWS_ACCESS_KEY_ID: mlflow_user
-      AWS_SECRET_ACCESS_KEY: mlflow_pwd
-      # ARTIFACTS_URI: , artifact_location=sftp_uri
+      AWS_ACCESS_KEY_ID: "mlflow_user"
+      AWS_SECRET_ACCESS_KEY: "mlflow_pwd"
       BACKEND_URI: postgresql+psycopg2://mlflow_user:mlflow_pwd@postgresql:5432/mlflow-db
       VIRTUAL_HOST: ${HOST}
       VIRTUAL_PORT: ${MLFLOW_PORT}
-      
+    networks:
+      - mlflow
+
   postgresql:
-    image: postgres:10.5
+    image: postgres:11
     container_name: postgresql
     ports:
-      - 5432:5432
+        - 5433:5432
     environment:
       POSTGRES_USER: mlflow_user
       POSTGRES_PASSWORD: mlflow_pwd
@@ -57,10 +63,12 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     hostname: postgresql
     restart: always
+    networks:
+      - mlflow
 
 volumes:
     dbdata:  
 
 networks:
-  default:
-    name: mock_demo
+  mlflow:
+    name: mlflow_network

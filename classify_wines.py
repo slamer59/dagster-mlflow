@@ -23,6 +23,7 @@ from dagster import (
 import typing
 
 import sklearn
+
 # import onnx_utils
 
 # Import mlflow
@@ -31,6 +32,7 @@ from mlflow.tracking import MlflowClient
 
 import mlflow.sklearn
 import numpy
+
 
 def yield_artifacts(run_id, path=None):
     """Yield all artifacts in the specified run"""
@@ -198,27 +200,37 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
     mlflow.sklearn.autolog(log_model_signatures=True, log_models=True)
     experiment_name = "Classify Wine"
     tracking_uri = "http://127.0.0.1:5000"
-    
+
     # sftp_uri = "sftp://mlflow_user:mlflow_pwd@127.0.0.1:2222/mlflow/mlflow-artifacts"
     # artifact_location=sftp_uri
     import os
-    os.environ['AWS_ACCESS_KEY_ID'] = 'mlflow_user'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'mlflow_pwd'
-    os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://0.0.0.0:9000'
+
+    os.environ["AWS_ACCESS_KEY_ID"] = "mlflow_user"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "mlflow_pwd"
+    os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://127.0.0.1:9000"
+
+    artifact_location = "s3://mlflow-bucket"
+    mlflow.set_tracking_uri(tracking_uri)
+    context.log.info("Mlfow tracking URI %s " % tracking_uri)
     
-    artifact_location="s3://mlflow-bucket"
-    mlflow.set_tracking_uri(tracking_uri)
+    experiment = mlflow.get_experiment_by_name(experiment_name)
 
-    client = MlflowClient()
-    mlflow.set_tracking_uri(tracking_uri)
-    experiment_names = [name for name in client.list_experiments()]
-    if experiment_name in experiment_names:
-        mlflow.get_experiment_by_name(experiment_name)
+    if experiment is None:
+        context.log.info("Create Experiment: %s" % experiment_name)
+        experiment_id = mlflow.create_experiment(
+            experiment_name, artifact_location=artifact_location
+        )
+        experiment = mlflow.get_experiment(experiment_id)
     else:
-        mlflow.create_experiment(experiment_name, artifact_location=artifact_location)
-    mlflow.set_experiment(experiment_name)
+        context.log.info("Experiment exist: %s" % experiment_name)
+        experiment = mlflow.get_experiment_by_name(experiment_name)
 
-    with mlflow.start_run() as run:
+    context.log.info("Expermient name: %s" % experiment)
+    context.log.info("Experiment_id: {}".format(experiment.experiment_id))
+    context.log.info("Artifact Location: {}".format(experiment.artifact_location))
+
+    with mlflow.start_run(experiment_id=experiment.experiment_id) as run:
+        context.log.info("Mlflow Start run %s" % run.info)
 
         grid = GridSearchCV(
             model_name,
@@ -235,22 +247,22 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
             estimator, "models/sk_model_" + key.replace(" ", "_").lower()
         )
 
-        # Convert into ONNX format
-        # from skl2onnx import convert_sklearn
-        # from skl2onnx.common.data_types import FloatTensorType
-        # initial_type = [('float_input', FloatTensorType([None, 4]))]
-        # onx = convert_sklearn(clr, initial_types=initial_type)
-        # with open("rf_iris.onnx", "wb") as f:
-        #     f.write(onx.SerializeToString())
+        ## Convert into ONNX format
+        ## from skl2onnx import convert_sklearn
+        ## from skl2onnx.common.data_types import FloatTensorType
+        ## initial_type = [('float_input', FloatTensorType([None, 4]))]
+        ## onx = convert_sklearn(clr, initial_types=initial_type)
+        ## with open("rf_iris.onnx", "wb") as f:
+        ##    f.write(onx.SerializeToString())
 
         # Convert sklearn model to ONNX and log model
-        from skl2onnx import to_onnx
+        # from skl2onnx import to_onnx
 
-        # onnx_model = onnx_utils.convert_to_onnx(estimator, X_test)
-        onnx_model = to_onnx(estimator, X_train[:1].astype(numpy.float32))
-        mlflow.onnx.log_model(
-            onnx_model, "models/onnx_model_" + key.replace(" ", "_").lower()
-        )
+        # # onnx_model = onnx_utils.convert_to_onnx(estimator, X_test)
+        # onnx_model = to_onnx(estimator, X_train[:1].astype(numpy.float32))
+        # mlflow.onnx.log_model(
+        #     onnx_model, "models/onnx_model_" + key.replace(" ", "_").lower()
+        # )
 
     # log_results(grid, experiment_name="Classify Wine", model_name=model_name)
 
