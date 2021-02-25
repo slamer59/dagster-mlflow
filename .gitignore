@@ -91,3 +91,4 @@ target/
 __pycache__/
 .minio.sys
 storage
+.localstack/
