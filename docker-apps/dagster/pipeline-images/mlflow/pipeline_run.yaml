@@ -1,0 +1,15 @@
+solids:
+  decision_tree:
+    config: "Decision Tree"
+  gradient_boosting_classifier:
+    config: "Gradient Boosting Classifier"
+  linear_svm:
+    config: "Linear SVM"
+  logistic_regression:
+    config: "Logistic Regression"
+  naive_bayes:
+    config: "Naive Bayes"
+  nearest_neighbors:
+    config: "Nearest Neighbors"
+  random_forest:
+    config: "Random Forest"

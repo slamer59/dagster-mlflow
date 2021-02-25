@@ -4,3 +4,7 @@ load_from:
       host: docker_example_pipelines
       port: 4000
       location_name: "example_pipelines"
+  - grpc_server:
+      host: docker_example_pipelines_mlflow
+      port: 4001
+      location_name: "example_pipelines_mlflow"

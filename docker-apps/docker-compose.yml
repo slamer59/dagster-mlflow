@@ -4,7 +4,7 @@ services:
   redisai:
     image: redisai/redisai
     networks:
-      - mlflow
+      - common
 
 # https://dev.to/goodidea/how-to-fake-aws-locally-with-localstack-27me
   artifact-store:
@@ -19,7 +19,7 @@ services:
     entrypoint: bash
     command: -c 'mkdir -p /data/mlflow-bucket && /usr/bin/minio server --address 0.0.0.0:9000 /data'
     networks:
-      - mlflow
+      - common
 
     # deploy:
     #   restart_policy:
@@ -49,7 +49,7 @@ services:
       VIRTUAL_HOST: ${HOST}
       VIRTUAL_PORT: ${MLFLOW_PORT}
     networks:
-      - mlflow
+      - common
 
   postgresql:
     image: postgres:11
@@ -64,11 +64,12 @@ services:
     hostname: postgresql
     restart: always
     networks:
-      - mlflow
+      - common
 
 volumes:
     dbdata:  
 
+# https://tjtelan.com/blog/how-to-link-multiple-docker-compose-via-network/
 networks:
-  mlflow:
-    name: mlflow_network
+  common:
+    name: common

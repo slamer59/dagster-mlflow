@@ -1,0 +1,50 @@
+FROM mambaorg/micromamba
+# FROM continuumio/miniconda
+# Install the package as normal:
+COPY ./pipeline-images/mlflow/environment.yml .
+
+
+# COPY env.yaml /root/env.yaml
+RUN micromamba install -y -n base -f environment.yml && \
+ rm /opt/conda/pkgs/cache/*
+# RUN conda env update -f environment.yml && \
+#     rm /opt/conda/pkgs/cache/*
+
+# COPY ./pipeline-images/mlflow/requirements.txt .
+# RUN pip install -r requirements.txt
+
+WORKDIR /mlflow/
+
+ENV BACKEND_FILE=/mlflow/data/mlflow.sqlite 
+ENV BACKEND_URI=/mlflow/store
+ENV PORT_LISTEN=5000
+
+ENV ARTIFACT_ROOT=/mlflow/mlflow-artifacts
+
+RUN mkdir -p /mlflow/data
+RUN touch ${BACKEND_FILE}
+
+# activate the mlflow environment
+ENV PATH /opt/conda/envs/mlflow/bin:$PATH
+
+# Set $DAGSTER_HOME and copy dagster instance there
+
+ENV DAGSTER_HOME=/opt/dagster/dagster_home
+
+RUN mkdir -p $DAGSTER_HOME
+
+COPY dagster.yaml $DAGSTER_HOME
+
+# Add repository code
+
+WORKDIR /opt/dagster/app
+
+COPY ./pipeline-images/mlflow/repo.py /opt/dagster/app
+
+# Run dagster gRPC server on port 4000
+
+EXPOSE 4001
+
+# CMD allows this to be overridden from run launchers or executors that want
+# to run other commands against your repository
+CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4001", "-f", "repo.py"]
