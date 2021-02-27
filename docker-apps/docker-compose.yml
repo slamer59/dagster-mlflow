@@ -34,12 +34,12 @@ services:
     volumes:
       - ../models/mlflow:/mlflow/mlflow-artifacts
     environment:
-      MLFLOW_S3_ENDPOINT_URL: "http://127.0.0.1:9000"
+      MLFLOW_S3_ENDPOINT_URL: "http://artifact-store:9000"
       ARTIFACT_ROOT: "s3://mlflow-bucket/"
       POSTGRES_USER: mlflow_user
       POSTGRES_PASSWORD: mlflow_pwd
       POSTGRES_DB: mlflow-db
-      AWS_HOST: "http://127.0.0.1:9000"
+      AWS_HOST: "http://artifact-store:9000"
       AWS_DISABLE_SSL: "true"
       AWS_S3_FORCE_PATH_STYLE: "true"
       AWS_BUCKET: "mlflow-bucket"
