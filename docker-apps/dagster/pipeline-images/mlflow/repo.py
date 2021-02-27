@@ -20,11 +20,13 @@ from dagster import (
     EnumValue,
     Field,
     Any,
+    PresetDefinition
 )
 import typing
 
 import sklearn
-
+from pathlib import Path
+base_path = Path(__file__).parent
 # import onnx_utils
 
 # Import mlflow
@@ -200,7 +202,7 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
     # enable autologging
     mlflow.sklearn.autolog(log_model_signatures=True, log_models=True)
     experiment_name = "Classify Wine"
-    tracking_uri = "http://127.0.0.1:5000"
+    tracking_uri = "http://mlflow:5000"
 
     # sftp_uri = "sftp://mlflow_user:mlflow_pwd@127.0.0.1:2222/mlflow/mlflow-artifacts"
     # artifact_location=sftp_uri
@@ -208,7 +210,7 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
 
     os.environ["AWS_ACCESS_KEY_ID"] = "mlflow_user"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "mlflow_pwd"
-    os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://127.0.0.1:9000"
+    os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://artifact-store:9000"
 
     artifact_location = "s3://mlflow-bucket"
     mlflow.set_tracking_uri(tracking_uri)
@@ -330,12 +332,20 @@ def log_run(
 def merge_results(context, models_metrics_result):
     return pd.concat(models_metrics_result)
 
-
+# print((base_path / "pipeline_runs.yaml").resolve())
 # To try:
 # https://stackoverflow.com/questions/61330816/how-would-you-parameterize-dagster-pipelines-to-run-same-solids-with-multiple-di
+# -> https://github.com/dagster-io/dagster/discussions/3047
+@pipeline(preset_defs=[
+        PresetDefinition.from_files(
+            "dev",
+            config_files=[
+                "/opt/dagster/app/pipeline_run.yaml"
+                # (base_path / "pipeline_run.yaml").resolve(),
+            ],
 
-
-@pipeline
+        )
+    ])
 def classify_wines():
     load_wines = load_wines_dataset()
     build_features(load_wines)
@@ -371,3 +381,5 @@ def my_schedule(_context):
 @repository
 def deploy_docker_repository():
     return [my_pipeline_mlflow_0, classify_wines, my_schedule]
+
+

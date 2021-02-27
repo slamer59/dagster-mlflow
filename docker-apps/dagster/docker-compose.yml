@@ -36,6 +36,7 @@ services:
       DAGSTER_CURRENT_IMAGE: "${COMPOSE_PROJECT_NAME}_docker_example_pipelines"
     networks:
       - common
+    restart: on-failure
   
   # Mlfow image
   docker_example_pipelines_mlflow:
@@ -52,6 +53,8 @@ services:
       DAGSTER_CURRENT_IMAGE: "${COMPOSE_PROJECT_NAME}_docker_example_pipelines_mlflow"
     networks:
       - common
+    restart: on-failure
+
 
 
   # This service runs dagit, which loads the pipelines from the user code container.
@@ -107,6 +110,7 @@ services:
       - docker_example_postgresql
       - docker_example_pipelines
       - docker_example_pipelines_mlflow
+    restart: on-failure
 
 # https://tjtelan.com/blog/how-to-link-multiple-docker-compose-via-network/
 networks:
