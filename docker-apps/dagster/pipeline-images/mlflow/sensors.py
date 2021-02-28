@@ -5,10 +5,11 @@ from dagster import (Any, Bool, Enum, EnumValue, Field, Output,
                      OutputDefinition, PresetDefinition,
                      PythonObjectDagsterType, Selector, String,
                      execute_pipeline, pipeline, repository, schedule, solid)
+from dagster.core.definitions.sensor import RunRequest
 from dagster.core.definitions.decorators.sensor import sensor
 base_path = Path(__file__).parent
 from mlflow.tracking import MlflowClient
-
+from pprint import pprint
 # https://github.com/dagster-io/dagster/blob/4a91c9d09b50db93e9174c93a4ada0e138e3a046/examples/docs_snippets/docs_snippets/intro_tutorial/basics/e02_solids/multiple_outputs.py
 if typing.TYPE_CHECKING:
     DataFrame = list
@@ -24,7 +25,9 @@ def my_directory_sensor(_context):
     tracking_uri = "http://mlflow:5000"
     client = MlflowClient(tracking_uri=tracking_uri)
     for rm in client.list_registered_models():
-        context.log.info("Registered model: " + dict(rm))
+        print("Registered model: ")
+        pprint(dict(rm), indent=4)
+
         run_id = dict(dict(rm)['latest_versions'][0])['run_id']
 
         yield RunRequest(

@@ -24,9 +24,6 @@ import typing
 
 import sklearn
 
-# import onnx_utils
-
-# Import mlflow
 import mlflow
 from mlflow.tracking import MlflowClient
 

@@ -1,10 +1,24 @@
 import typing
 from pathlib import Path
 
-from dagster import (Any, Bool, Enum, EnumValue, Field, Output,
-                     OutputDefinition, PresetDefinition,
-                     PythonObjectDagsterType, Selector, String,
-                     execute_pipeline, pipeline, repository, schedule, solid)
+from dagster import (
+    Any,
+    Bool,
+    Enum,
+    EnumValue,
+    Field,
+    Output,
+    OutputDefinition,
+    PresetDefinition,
+    PythonObjectDagsterType,
+    Selector,
+    String,
+    execute_pipeline,
+    pipeline,
+    repository,
+    schedule,
+    solid,
+)
 from solids import *
 
 base_path = Path(__file__).parent
@@ -19,21 +33,17 @@ else:
     DataFrame = PythonObjectDagsterType(list, name="DataFrame")  # type: Any
 
 
-
-
-
 # To try:
 # https://stackoverflow.com/questions/61330816/how-would-you-parameterize-dagster-pipelines-to-run-same-solids-with-multiple-di
 # -> https://github.com/dagster-io/dagster/discussions/3047
-@pipeline(preset_defs=[
+@pipeline(
+    preset_defs=[
         PresetDefinition.from_files(
             "dev",
-            config_files=[
-                "/opt/dagster/app/pipeline_run.yaml"
-            ],
-
+            config_files=["/opt/dagster/app/pipeline_run.yaml"],
         )
-    ])
+    ]
+)
 def classify_wines():
     load_wines = load_wines_dataset()
     build_features(load_wines)
@@ -50,7 +60,13 @@ def classify_wines():
     merge_results(models_metrics_result)
 
 
-
-@pipeline
+@pipeline(
+    preset_defs=[
+        PresetDefinition.from_files(
+            "dev",
+            config_files=["/opt/dagster/app/pipeline_mlflow_0.yaml"],
+        )
+    ]
+)
 def my_pipeline_mlflow_0():
     use_model()

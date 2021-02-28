@@ -54,10 +54,6 @@ services:
     networks:
       - common
     restart: on-failure
-    volumes: # Make docker client accessible so we can launch containers using host docker
-      - ./pipeline-images/mlflow/:/opt/dagster/app/
-
-
 
   # This service runs dagit, which loads the pipelines from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from dagit will be put on

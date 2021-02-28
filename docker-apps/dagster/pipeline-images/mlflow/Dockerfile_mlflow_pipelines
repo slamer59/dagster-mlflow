@@ -39,8 +39,7 @@ COPY dagster.yaml $DAGSTER_HOME
 
 WORKDIR /opt/dagster/app
 
-# COPY ./pipeline-images/mlflow/*.py /opt/dagster/app/
-# COPY ./pipeline-images/mlflow/pipeline_run.yaml /opt/dagster/app
+COPY ./pipeline-images/mlflow/ /opt/dagster/app/
 
 # Run dagster gRPC server on port 4000
 

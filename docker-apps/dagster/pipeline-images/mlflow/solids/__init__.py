@@ -1,46 +1,33 @@
-from dagster import pipeline, repository, schedule, solid
-from sklearn import datasets
-
-import pandas as pd
-import numpy as np
 import time
-from dagster import execute_pipeline, pipeline, solid
-from dagster import (
-    Bool,
-    Field,
-    Output,
-    OutputDefinition,
-    PythonObjectDagsterType,
-    execute_pipeline,
-    pipeline,
-    solid,
-    String,
-    Selector,
-    Enum,
-    EnumValue,
-    Field,
-    Any,
-    PresetDefinition
-)
 import typing
-
-import sklearn
 from pathlib import Path
-base_path = Path(__file__).parent
-import mlflow
-from mlflow.tracking import MlflowClient
 
+import mlflow
 import mlflow.sklearn
 import numpy
-
+import numpy as np
+import pandas as pd
+from dagster import (Any, Bool, Enum, EnumValue, Field, Output,
+                     OutputDefinition, PresetDefinition,
+                     PythonObjectDagsterType, Selector, String,
+                     execute_pipeline, pipeline, repository, schedule, solid)
+from sklearn import datasets
 
 # https://github.com/dagster-io/dagster/blob/4a91c9d09b50db93e9174c93a4ada0e138e3a046/examples/docs_snippets/docs_snippets/intro_tutorial/basics/e02_solids/multiple_outputs.py
 if typing.TYPE_CHECKING:
     DataFrame = list
 else:
     DataFrame = PythonObjectDagsterType(list, name="DataFrame")  # type: Any
+from sklearn import tree
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from utils import *
 
-
+base_path = Path(__file__).parent
 # https://jonathonbechtel.com/blog/2018/02/06/wines/
 
 # Step 1
@@ -92,20 +79,6 @@ def train_test_split(context, data):
     yield Output(X_test, "X_test")
     yield Output(Y_test, "Y_test")
 
-
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC, LinearSVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn import tree
-from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.ensemble import RandomForestClassifier
-
-
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
 
 dict_classifiers = {
     "Logistic Regression": {
@@ -187,7 +160,7 @@ def ml_model(context, X_train, Y_train, X_test, Y_test):
     artifact_location = "s3://mlflow-bucket"
     mlflow.set_tracking_uri(tracking_uri)
     context.log.info("Mlfow tracking URI %s " % tracking_uri)
-    
+
     experiment = mlflow.get_experiment_by_name(experiment_name)
 
     if experiment is None:
@@ -304,7 +277,8 @@ def log_run(
 def merge_results(context, models_metrics_result):
     return pd.concat(models_metrics_result)
 
+
 @solid(config_schema={"run_id": str})
 def use_model(context):
     run_id = context.solid_config["run_id"]
-    context.log.info("Using mlflow: "+ run_id)
+    context.log.info("Using mlflow: " + run_id)

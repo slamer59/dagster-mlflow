@@ -19,12 +19,6 @@ if typing.TYPE_CHECKING:
 else:
     DataFrame = PythonObjectDagsterType(list, name="DataFrame")  # type: Any
 
-
-
-
-
-
-
 def yield_artifacts(run_id, path=None):
     """Yield all artifacts in the specified run"""
     client = mlflow.tracking.MlflowClient()
