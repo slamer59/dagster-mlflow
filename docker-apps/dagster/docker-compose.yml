@@ -54,6 +54,8 @@ services:
     networks:
       - common
     restart: on-failure
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - ./pipeline-images/mlflow/:/opt/dagster/app/
 
 
 
