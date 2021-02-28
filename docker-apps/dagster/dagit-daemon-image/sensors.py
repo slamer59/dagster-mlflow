@@ -14,12 +14,3 @@ def my_directory_sensor(_context):
     client = MlflowClient(tracking_uri=tracking_uri)
     for rm in client.list_registered_models():
         pprint(dict(rm), indent=4)
-
-    
-    # for filename in os.listdir(MY_DIRECTORY):
-    #     filepath = os.path.join(MY_DIRECTORY, filename)
-    #     if os.path.isfile(filepath):
-    #         yield RunRequest(
-    #             run_key=filename,
-    #             run_config={"solids": {"process_file": {"config": {"filename": filename}}}},
-    #         )
