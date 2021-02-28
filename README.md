@@ -30,11 +30,12 @@ solids:
 
 Todo list:
 
-- [ ] Add mlflow to log models
+- [x] Add mlflow to log models
+- [ ] Attached a VOLUME to dagster Docker image to refresh repo.py / config.yaml more dynamically.
 - [ ] See if it is possible to integrate solid configuration dynamically, e.g. another solid can get the list of parameters from a file then pass it to dynamically launch multiple solids (models)
 - [ ] Launch solids in parallel
 - [ ] Trigger dagster when a new parameter is registered.
-- [ ] Construct solid dynamically from an mlflow[ model signature](https://www.mlflow.org/docs/latest/_modules/mlflow/models/signature.html). Ex? [With papermill](https://www.youtube.com/watch?v=9WKtBFg2bUo).
+- [ ] Construct solid dynamically from an mlflow [model signature](https://www.mlflow.org/docs/latest/_modules/mlflow/models/signature.html). Ex? [With papermill](https://www.youtube.com/watch?v=9WKtBFg2bUo).
 - [ ] Test [sensors event based triggering](https://docs.dagster.io/overview/schedules-sensors/sensors)
 
 
