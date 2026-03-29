@@ -4,7 +4,7 @@ services:
   # This service runs the postgres DB used by dagster for run storage, schedule storage,
   # and event log storage.
   docker_example_postgresql:
-    image: postgres:11
+    image: postgres:18
     container_name: docker_example_postgresql
     ports:
       - "5432:5432"
