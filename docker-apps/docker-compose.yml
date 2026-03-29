@@ -52,7 +52,7 @@ services:
       - common
 
   postgresql:
-    image: postgres:11
+    image: postgres:18
     container_name: postgresql
     ports:
         - 5433:5432
